@@ -39,7 +39,8 @@ int main(string[] args) {
     auto target_path = buildPath(target_dir, path);
     ensure_path_exists(target_path);
 
-    auto target_filename = buildPath(target_path, baseName(filename));
+    auto target_filename = buildPath(target_path,
+				     get_target_filename(filename));
     if (! target_filename.exists()) {
       writefln("    moving file to %s", target_filename);
       rename(filename, target_filename);
@@ -77,4 +78,9 @@ void ensure_path_exists(string path) {
     writefln("Creating path %s", path);
     mkdirRecurse(path);
   }
+}
+
+
+string get_target_filename(string filename) {
+  return baseName(filename.toLower());
 }
