@@ -7,6 +7,9 @@ import std.path;
 import std.stdio;
 import std.string;
 
+import deimos.libexif.exif_data;
+import deimos.libexif.exif_loader;
+
 
 int main(string[] args) {
 
@@ -61,6 +64,24 @@ bool should_process(DirEntry item) {
 
 
 SysTime get_time(DirEntry item) {
+  // TODO: I think it should be possible to wrap this in a D struct or
+  // something similar.
+  ExifLoader* loader = exif_loader_new();
+  scope(exit) {
+    exif_loader_unref(loader);
+  }
+  exif_loader_write_file(loader, toStringz(item.name));
+
+  ExifData* data = exif_loader_get_data(loader);
+  // TODO: should probably free `data`, and could use
+  // exif_data_new_from_file to avoid creating the loader on my own.
+  
+  exif_data_dump(data);
+
+
+  // TODO: Find out how to use this:
+  //exif_data_foreach_content(data, &callback_content, null);
+  
   return item.timeLastModified();
 }
 
