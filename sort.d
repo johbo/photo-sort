@@ -87,34 +87,26 @@ SysTime get_time(DirEntry item) {
   // TODO: should probably free `data`, and could use
   // exif_data_new_from_file to avoid creating the loader on my own.
 
+  // Note: Can be used to dump all EXIF data for inspection
+  // exif_data_dump(data);
+
   
-  // TODO: Find out how to use this:
-  void* user_data;
-  exif_data_foreach_content(data, &callback_content, user_data);
+  ExifEntry* entry = exif_content_get_entry(data.ifd[EXIF_IFD_0],
+					    EXIF_TAG_DATE_TIME);
+
+  if (entry) {
+    // TODO: logging
+    writeln("Found EXIF date");
+
+    // TODO: only use the entry if it is of type ASCII
+    writeln(to!string(exif_format_get_name(entry.format)));
+
+    string t = to!string(cast(ExifAscii) entry.data);
+    writeln(t);
+
+  }
   
   return item.timeLastModified();
-}
-
-
-extern (C) nothrow
-void callback_content(ExifContent* content, void* user_data) {
-  // TODO: implement!
-  try {
-    writeln("in callback");
-  } catch (Throwable) {
-  }
-  exif_content_foreach_entry(content, &callback_entry, null);
-}
-
-
-extern(C) nothrow
-void callback_entry(ExifEntry* entry, void* user_data) {
-  exif_entry_dump(entry, 2);
-  try {
-    writeln("in entry callback");
-    writeln(fromStringz(exif_tag_get_name(entry.tag)));
-  } catch (Throwable) {
-  }
 }
 
 
