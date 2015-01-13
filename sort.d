@@ -1,5 +1,6 @@
 
 import std.algorithm;
+import std.array;
 import std.conv;
 import std.datetime;
 import std.file;
@@ -101,8 +102,11 @@ SysTime get_time(DirEntry item) {
     // TODO: only use the entry if it is of type ASCII
     writeln(to!string(exif_format_get_name(entry.format)));
 
-    string t = to!string(cast(ExifAscii) entry.data);
-    writeln(t);
+    auto ascii_date = to!string(cast(ExifAscii) entry.data);
+    ascii_date = ascii_date.replace(" ", ":");
+
+    auto parts = map!(to!int)(ascii_date.split(":"));
+    writeln(parts);
 
   }
   
