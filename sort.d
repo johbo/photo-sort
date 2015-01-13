@@ -1,12 +1,17 @@
 
 import std.algorithm;
+import std.conv;
+import std.datetime;
 import std.file;
+import std.path;
 import std.stdio;
 import std.string;
 
 
 int main(string[] args) {
 
+  // TODO: Probably there is a utility in D to parse command line
+  // arguments
   if (args.length != 2) {
     stderr.writefln("Usage: %s FILENAME", args[0]);
     return 1;
@@ -23,6 +28,10 @@ int main(string[] args) {
 
   foreach(filename; filtered_files) {
     writefln("Working on file %s", filename);
+    auto created = get_time(filename);
+    writefln("    created at: %s", created);
+    auto path = get_target_path(created);
+    writefln("    target path: %s", path);
   }
 
   // Done, return success
@@ -33,4 +42,16 @@ int main(string[] args) {
 
 bool should_process(DirEntry item) {
   return item.name.toLower().endsWith(".jpg");
+}
+
+
+SysTime get_time(DirEntry item) {
+  return item.timeLastModified();
+}
+
+
+string get_target_path(SysTime time) {
+  return buildPath(time.year.to!string,
+		   format("%02d", time.month),
+		   format("%02d", time.day));
 }
