@@ -64,6 +64,17 @@ bool should_process(DirEntry item) {
 
 
 SysTime get_time(DirEntry item) {
+
+
+  /* 
+    Tag: 0x9003 ('DateTimeOriginal')
+      Format: 2 ('ASCII')
+      Components: 20
+      Size: 20
+      Value: 2014:12:29 12:25:23
+  */
+
+  
   // TODO: I think it should be possible to wrap this in a D struct or
   // something similar.
   ExifLoader* loader = exif_loader_new();
@@ -75,14 +86,35 @@ SysTime get_time(DirEntry item) {
   ExifData* data = exif_loader_get_data(loader);
   // TODO: should probably free `data`, and could use
   // exif_data_new_from_file to avoid creating the loader on my own.
+
   
-  exif_data_dump(data);
-
-
   // TODO: Find out how to use this:
-  //exif_data_foreach_content(data, &callback_content, null);
+  void* user_data;
+  exif_data_foreach_content(data, &callback_content, user_data);
   
   return item.timeLastModified();
+}
+
+
+extern (C) nothrow
+void callback_content(ExifContent* content, void* user_data) {
+  // TODO: implement!
+  try {
+    writeln("in callback");
+  } catch (Throwable) {
+  }
+  exif_content_foreach_entry(content, &callback_entry, null);
+}
+
+
+extern(C) nothrow
+void callback_entry(ExifEntry* entry, void* user_data) {
+  exif_entry_dump(entry, 2);
+  try {
+    writeln("in entry callback");
+    writeln(fromStringz(exif_tag_get_name(entry.tag)));
+  } catch (Throwable) {
+  }
 }
 
 
