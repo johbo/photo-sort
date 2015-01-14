@@ -14,21 +14,14 @@ import deimos.libexif.exif_loader;
 
 int main(string[] args) {
 
-  // TODO: Probably there is a utility in D to parse command line
-  // arguments
-  if (args.length != 2) {
-    stderr.writefln("Usage: %s FILENAME", args[0]);
-    return 1;
-  }
-
-  auto source_dir = args[1];
-  auto target_dir = source_dir;
+  AppConfig config = AppConfig();
+  config.check_and_parse(args);
 
   // TODO: How is logging done in D?
-  stdout.writefln("Working in directory %s", source_dir);
+  stdout.writefln("Working in directory %s", config.source_dir);
 
   // Images in current directory
-  auto files = dirEntries(source_dir, SpanMode.shallow);
+  auto files = dirEntries(config.source_dir, SpanMode.shallow);
   auto filtered_files = filter!should_process(files);
 
   foreach(filename; filtered_files) {
@@ -40,7 +33,7 @@ int main(string[] args) {
     auto path = get_target_path(created);
     writefln("    target path: %s", path);
 
-    auto target_path = buildPath(target_dir, path);
+    auto target_path = buildPath(config.target_dir, path);
     ensure_path_exists(target_path);
 
     auto target_filename = buildPath(target_path,
@@ -56,6 +49,25 @@ int main(string[] args) {
   // Done, return success
   return 0;
   
+}
+
+
+struct AppConfig {
+  string source_dir;
+  string target_dir;
+
+  void check_and_parse(string[] args) {
+    // TODO: Probably there is a utility in D to parse command line
+    // arguments
+    if (args.length != 2) {
+      stderr.writefln("Usage: %s DIRNAME", args[0]);
+      throw new Exception("Directory name missing");
+    }
+
+    source_dir = args[1];
+    target_dir = source_dir;
+  }
+
 }
 
 
