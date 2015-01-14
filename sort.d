@@ -106,10 +106,20 @@ SysTime get_time(DirEntry item) {
     ascii_date = ascii_date.replace(" ", ":");
 
     auto parts = map!(to!int)(ascii_date.split(":"));
-    writeln(parts);
+
+    if (parts.length == 6) {
+      return SysTime(DateTime(parts[0], parts[1], parts[2],
+			      parts[3], parts[4], parts[5]));
+    } else {
+      // TODO: logging
+      writeln("ERROR: Parsed date into %s parts. Original value %s.",
+	      parts.length, ascii_date);
+    }
 
   }
-  
+
+  // logging
+  writeln("INFO: Did not find an EXIF date, using file date.");
   return item.timeLastModified();
 }
 
