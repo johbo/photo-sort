@@ -24,7 +24,7 @@ class ImageFileSorter {
     _target_dir = target_dir;
   }
 
-  void process_files() {
+  void process_files(bool dry_run=false) {
 
     writefln("Source dir: %s", _source_dir);
     
@@ -48,7 +48,9 @@ class ImageFileSorter {
 				       get_target_filename(filename));
       if (! target_filename.exists()) {
 	writefln("    moving file to %s", target_filename);
-	rename(filename, target_filename);
+	if (! dry_run) {
+	  rename(filename, target_filename);
+	}
       } else {
 	writefln("    SKIPPING, file %s already exists!", target_filename);
       }
