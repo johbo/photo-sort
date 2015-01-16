@@ -41,7 +41,9 @@ class ImageFileSorter {
       writefln("    target path: %s", path);
 
       auto target_path = buildPath(_target_dir, path);
-      ensure_path_exists(target_path);
+      if (! dry_run) {
+	ensure_path_exists(target_path);
+      }
 
       auto target_filename = buildPath(target_path,
 				       get_target_filename(filename));
