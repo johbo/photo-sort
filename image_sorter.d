@@ -64,7 +64,8 @@ class ImageFileSorter {
 
 
 bool should_process(DirEntry item) {
-  return item.name.toLower().endsWith(".jpg");
+  auto supported = [".jpg", ".jpeg"];
+  return supported.canFind(item.name.toLower().extension());
 }
 
 
