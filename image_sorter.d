@@ -10,141 +10,151 @@ import std.path;
 import std.stdio;
 import std.string;
 
-import deimos.libexif.exif_data;
-import deimos.libexif.exif_loader;
+import deimos.freeimage;
 
 
 class ImageFileSorter {
 
-  private string _source_dir;
-  private string _target_dir;
+    private string _source_dir;
+    private string _target_dir;
 
-  this(string source_dir, string target_dir) {
-    _source_dir = source_dir;
-    _target_dir = target_dir;
-  }
-
-  void process_files(bool dry_run=false) {
-
-    writefln("Source dir: %s", _source_dir);
-    
-    // Images in current directory
-    auto files = dirEntries(_source_dir, SpanMode.shallow);
-    auto filtered_files = filter!should_process(files);
-
-    foreach(filename; filtered_files) {
-      writefln("Working on file %s", filename);
-
-      auto created = get_time(filename);
-      writefln("    created at: %s", created);
-
-      auto path = get_target_path(created);
-      writefln("    target path: %s", path);
-
-      auto target_path = buildPath(_target_dir, path);
-      ensure_path_exists(target_path);
-
-      auto target_filename = buildPath(target_path,
-				       get_target_filename(filename));
-      if (! target_filename.exists()) {
-	writefln("    moving file to %s", target_filename);
-	if (! dry_run) {
-	  rename(filename, target_filename);
-	}
-      } else {
-	writefln("    SKIPPING, file %s already exists!", target_filename);
-      }
+    this(string source_dir, string target_dir) {
+	_source_dir = source_dir;
+        _target_dir = target_dir;
     }
 
-  }
+    void process_files(bool dry_run=false) {
+
+        writefln("Source dir: %s", _source_dir);
+    
+        // Images in current directory
+        auto files = dirEntries(_source_dir, SpanMode.shallow);
+        auto filtered_files = filter!should_process(files);
+
+        foreach(filename; filtered_files) {
+            writefln("Working on file %s", filename);
+
+            auto created = get_time(filename);
+            writefln("    created at: %s", created);
+
+            auto path = get_target_path(created);
+            writefln("    target path: %s", path);
+
+            auto target_path = buildPath(_target_dir, path);
+            if (! dry_run) {
+                ensure_path_exists(target_path);
+            }
+
+            auto target_filename = buildPath(target_path,
+                                             get_target_filename(filename));
+            if (! target_filename.exists()) {
+                writefln("    moving file to %s", target_filename);
+                if (! dry_run) {
+                    rename(filename, target_filename);
+                }
+            } else {
+                writefln(
+                    "    SKIPPING, file %s already exists!",
+                    target_filename);
+            }
+        }
+
+    }
 
 }
 
 
-
-
 bool should_process(DirEntry item) {
-  auto supported = [".jpg", ".jpeg"];
-  return supported.canFind(item.name.toLower().extension());
+    auto supported = [".jpg", ".jpeg", ".cr2"];
+    return supported.canFind(item.name.toLower().extension());
 }
 
 
 SysTime get_time(DirEntry item) {
+    auto image_type = item.name.toLower().extension();
+    FREE_IMAGE_FORMAT[string] image_formats = [
+        ".jpg": FIF_JPEG,
+        ".jpeg": FIF_JPEG,
+        ".cr2": FIF_RAW,
+        ];
+
+    try {
+        return get_image_time(image_formats[image_type], item);
+    } catch (RangeError err) {
+        throw new Exception("Not supported image format");
+    }
+}
 
 
-  /* 
-    Tag: 0x9003 ('DateTimeOriginal')
-      Format: 2 ('ASCII')
-      Components: 20
-      Size: 20
-      Value: 2014:12:29 12:25:23
-  */
+private SysTime get_image_time(FREE_IMAGE_FORMAT image_format, DirEntry item) {
 
-  
-  // TODO: I think it should be possible to wrap this in a D struct or
-  // something similar.
-  ExifLoader* loader = exif_loader_new();
-  scope(exit) {
-    exif_loader_unref(loader);
-  }
-  exif_loader_write_file(loader, toStringz(item.name));
+    auto image = FreeImage_Load(image_format,
+                                item.name.toStringz(),
+                                FIF_LOAD_NOPIXELS);
+    scope(exit) {
+        FreeImage_Unload(image);
+    }
 
-  ExifData* data = exif_loader_get_data(loader);
-  // TODO: should probably free `data`, and could use
-  // exif_data_new_from_file to avoid creating the loader on my own.
+    FITAG* tag;
+    if (FreeImage_GetMetadata(FIMD_EXIF_MAIN,
+                              image,
+                              "DateTime".toStringz(),
+                              &tag)) {
+        auto tag_str = to!string(FreeImage_TagToString(image_format, tag));
+        return parse_ascii_date(tag_str);
+    } else {
+        // TODO: Dump tags should be kind of verbose mode only
+        auto iter = FreeImage_FindFirstMetadata(FIMD_EXIF_MAIN,
+                                                image,
+                                                &tag);
+        if (iter) {
+            writefln("TAG %s", FreeImage_GetTagKey(tag).fromStringz());
+            while (FreeImage_FindNextMetadata(iter, &tag)) {
+                writefln("TAG %s", FreeImage_GetTagKey(tag).fromStringz());
+            }
+        }
+    }
 
-  // Note: Can be used to dump all EXIF data for inspection
-  // exif_data_dump(data);
+    // logging
+    writeln("INFO: Did not find an EXIF date, using file date.");
+    return item.timeLastModified();
+}
 
-  
-  ExifEntry* entry = exif_content_get_entry(data.ifd[EXIF_IFD_0],
-					    EXIF_TAG_DATE_TIME);
 
-  if (entry) {
-    // TODO: logging
-    writeln("Found EXIF date");
-
-    // TODO: only use the entry if it is of type ASCII
-    writeln(to!string(exif_format_get_name(entry.format)));
-
-    auto ascii_date = to!string(cast(ExifAscii) entry.data);
+private SysTime parse_ascii_date(string ascii_date) {
     ascii_date = ascii_date.replace(" ", ":");
 
     auto parts = map!(to!int)(ascii_date.split(":"));
 
     if (parts.length == 6) {
-      return SysTime(DateTime(parts[0], parts[1], parts[2],
-			      parts[3], parts[4], parts[5]));
+        return SysTime(DateTime(parts[0], parts[1], parts[2],
+                                parts[3], parts[4], parts[5]));
     } else {
-      // TODO: logging
-      writeln("ERROR: Parsed date into %s parts. Original value %s.",
-	      parts.length, ascii_date);
+        // TODO: logging
+        writeln("ERROR: Parsed date into %s parts. Original value %s.",
+                parts.length, ascii_date);
+        throw new Exception("Cannot parse date");
     }
-
-  }
-
-  // logging
-  writeln("INFO: Did not find an EXIF date, using file date.");
-  return item.timeLastModified();
 }
 
 
 string get_target_path(SysTime time) {
-  return buildPath(time.year.to!string,
-		   format("%02d", time.month),
-		   format("%02d", time.day));
+    return buildPath(
+        time.year.to!string,
+        format("%02d", time.month),
+        format("%02d", time.day));
 }
 
 
 void ensure_path_exists(string path) {
-  if (! path.exists()) {
-    // TODO: logging
-    writefln("Creating path %s", path);
-    mkdirRecurse(path);
-  }
+    if (! path.exists()) {
+        // TODO: logging
+        writefln("Creating path %s", path);
+        mkdirRecurse(path);
+    }
 }
 
 
 string get_target_filename(string filename) {
-  return baseName(filename.toLower());
+    return baseName(filename.toLower());
 }
