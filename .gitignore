@@ -2,6 +2,7 @@
 # generated artifacts
 *~
 *.o
+.*
 
 # generated binary
 sort
