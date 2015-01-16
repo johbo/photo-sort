@@ -17,6 +17,8 @@
 
 - [ ] Testing
 
+- [ ] Parser for command line args
+
 - [ ] Building things
 
 - [ ] App structure
@@ -27,4 +29,4 @@
 
 - [ ] Allow file name patterns
 
-
+- [ ] configuration file available
