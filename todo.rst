@@ -9,7 +9,7 @@
 
 - [X] Check how to read RAW files, CR2
 
-- [ ] use freeimage also for jpeg case
+- [X] use freeimage also for jpeg case
 
 - [ ] Document classes and functions
 
@@ -26,6 +26,5 @@
     Should contain the image specific logic.
 
 - [ ] Allow file name patterns
-
 
 
