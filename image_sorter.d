@@ -71,27 +71,21 @@ bool should_process(DirEntry item) {
 SysTime get_time(DirEntry item) {
 
   auto image_type = item.name.toLower().extension();
+  // TODO: Use dict
+  
   if (image_type == ".jpg" || image_type == ".jpeg") {
-    return get_jpeg_time(item);
+    return get_image_time(FIF_JPEG, item);
   } else if (image_type == ".cr2") {
-    return get_cr2_time(item);
+    return get_image_time(FIF_RAW, item);
   } else {
     throw new Exception("Not supported");
   }
 }
 
 
-private SysTime get_jpeg_time(DirEntry item) {
+private SysTime get_image_time(FREE_IMAGE_FORMAT image_format, DirEntry item) {
 
-  /* 
-    Tag: 0x9003 ('DateTimeOriginal')
-      Format: 2 ('ASCII')
-      Components: 20
-      Size: 20
-      Value: 2014:12:29 12:25:23
-  */
-
-  auto image = FreeImage_Load(FIF_JPEG,
+  auto image = FreeImage_Load(image_format,
 			      item.name.toStringz(),
 			      FIF_LOAD_NOPIXELS);
   scope(exit) {
@@ -103,9 +97,10 @@ private SysTime get_jpeg_time(DirEntry item) {
 			    image,
 			    "DateTime".toStringz(),
 			    &tag)) {
-    auto tag_str = to!string(FreeImage_TagToString(FIF_RAW, tag));
+    auto tag_str = to!string(FreeImage_TagToString(image_format, tag));
     return parse_ascii_date(tag_str);
   } else {
+    // TODO: Dump tags should be kind of verbose mode only
     auto iter = FreeImage_FindFirstMetadata(FIMD_EXIF_MAIN,
 					    image,
 					    &tag);
@@ -119,42 +114,6 @@ private SysTime get_jpeg_time(DirEntry item) {
 
   // logging
   writeln("INFO: Did not find an EXIF date, using file date.");
-  return item.timeLastModified();
-}
-
-
-private SysTime get_cr2_time(DirEntry item) {
-
-  auto image = FreeImage_Load(FIF_RAW,
-			      item.name.toStringz(),
-			      FIF_LOAD_NOPIXELS);
-  scope(exit) {
-    FreeImage_Unload(image);
-  }
-
-  FITAG* tag;
-  if (FreeImage_GetMetadata(FIMD_EXIF_MAIN,
-			    image,
-			    "DateTime".toStringz(),
-			    &tag)) {
-    auto tag_str = to!string(FreeImage_TagToString(FIF_RAW, tag));
-    return parse_ascii_date(tag_str);
-  } else {
-    // TODO: Dump tags should be kind of verbose mode only
-    auto iter = FreeImage_FindFirstMetadata(FIMD_EXIF_MAIN,
-					    image,
-					    &tag);
-    if (iter) {
-      writefln("TAG: %s", FreeImage_GetTagKey(tag).fromStringz());
-      while (FreeImage_FindNextMetadata(iter, &tag)) {
-	writefln("TAG: %s", FreeImage_GetTagKey(tag).fromStringz());
-      }
-    }
-  }
-
-  
-  // logging
-  writeln("INFO: Did not find date in metadata, using file date.");
   return item.timeLastModified();
 }
 
