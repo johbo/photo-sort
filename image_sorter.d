@@ -10,6 +10,7 @@ import std.path;
 import std.stdio;
 import std.string;
 
+import deimos.freeimage;
 import deimos.libexif.exif_data;
 import deimos.libexif.exif_loader;
 
@@ -120,18 +121,7 @@ private SysTime get_jpeg_time(DirEntry item) {
     writeln(to!string(exif_format_get_name(entry.format)));
 
     auto ascii_date = to!string(cast(ExifAscii) entry.data);
-    ascii_date = ascii_date.replace(" ", ":");
-
-    auto parts = map!(to!int)(ascii_date.split(":"));
-
-    if (parts.length == 6) {
-      return SysTime(DateTime(parts[0], parts[1], parts[2],
-			      parts[3], parts[4], parts[5]));
-    } else {
-      // TODO: logging
-      writeln("ERROR: Parsed date into %s parts. Original value %s.",
-	      parts.length, ascii_date);
-    }
+    return parse_ascii_date(ascii_date);
 
   }
 
@@ -142,9 +132,55 @@ private SysTime get_jpeg_time(DirEntry item) {
 
 
 private SysTime get_cr2_time(DirEntry item) {
+
+  auto image = FreeImage_Load(FIF_RAW,
+			      item.name.toStringz(),
+			      FIF_LOAD_NOPIXELS);
+  scope(exit) {
+    FreeImage_Unload(image);
+  }
+
+  FITAG* tag;
+  if (FreeImage_GetMetadata(FIMD_EXIF_MAIN,
+			    image,
+			    "DateTime".toStringz(),
+			    &tag)) {
+    auto tag_str = to!string(FreeImage_TagToString(FIF_RAW, tag));
+    return parse_ascii_date(tag_str);
+  } else {
+    // TODO: Dump tags should be kind of verbose mode only
+    auto iter = FreeImage_FindFirstMetadata(FIMD_EXIF_MAIN,
+					    image,
+					    &tag);
+    writefln("TAG: %s", FreeImage_GetTagKey(tag).fromStringz());
+    if (iter) {
+      while (FreeImage_FindNextMetadata(iter, &tag)) {
+	writefln("TAG: %s", FreeImage_GetTagKey(tag).fromStringz());
+      }
+    }
+  }
+
+  
   // logging
   writeln("INFO: Did not find date in metadata, using file date.");
   return item.timeLastModified();
+}
+
+
+private SysTime parse_ascii_date(string ascii_date) {
+  ascii_date = ascii_date.replace(" ", ":");
+
+  auto parts = map!(to!int)(ascii_date.split(":"));
+
+  if (parts.length == 6) {
+    return SysTime(DateTime(parts[0], parts[1], parts[2],
+			    parts[3], parts[4], parts[5]));
+  } else {
+    // TODO: logging
+    writeln("ERROR: Parsed date into %s parts. Original value %s.",
+	    parts.length, ascii_date);
+    throw new Exception("Cannot parse date");
+  }
 }
 
 
