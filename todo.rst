@@ -7,6 +7,10 @@
 
 - [X] Use date information from exif data
 
+- [X] Check how to read RAW files, CR2
+
+- [ ] use freeimage also for jpeg case
+
 - [ ] Document classes and functions
 
 - [ ] Logging
@@ -14,8 +18,6 @@
 - [ ] Testing
 
 - [ ] Building things
-
-- [ ] Check how to read RAW files, CR2
 
 - [ ] App structure
 
