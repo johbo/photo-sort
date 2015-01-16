@@ -64,13 +64,25 @@ class ImageFileSorter {
 
 
 bool should_process(DirEntry item) {
-  auto supported = [".jpg", ".jpeg"];
+  auto supported = [".jpg", ".jpeg", ".cr2"];
   return supported.canFind(item.name.toLower().extension());
 }
 
 
 SysTime get_time(DirEntry item) {
 
+  auto image_type = item.name.toLower().extension();
+  if (image_type == ".jpg" || image_type == ".jpeg") {
+    return get_jpeg_time(item);
+  } else if (image_type == ".cr2") {
+    return get_cr2_time(item);
+  } else {
+    throw new Exception("Not supported");
+  }
+}
+
+
+private SysTime get_jpeg_time(DirEntry item) {
 
   /* 
     Tag: 0x9003 ('DateTimeOriginal')
@@ -125,6 +137,13 @@ SysTime get_time(DirEntry item) {
 
   // logging
   writeln("INFO: Did not find an EXIF date, using file date.");
+  return item.timeLastModified();
+}
+
+
+private SysTime get_cr2_time(DirEntry item) {
+  // logging
+  writeln("INFO: Did not find date in metadata, using file date.");
   return item.timeLastModified();
 }
 
