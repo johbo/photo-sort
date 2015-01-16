@@ -69,16 +69,17 @@ bool should_process(DirEntry item) {
 
 
 SysTime get_time(DirEntry item) {
-
   auto image_type = item.name.toLower().extension();
-  // TODO: Use dict
-  
-  if (image_type == ".jpg" || image_type == ".jpeg") {
-    return get_image_time(FIF_JPEG, item);
-  } else if (image_type == ".cr2") {
-    return get_image_time(FIF_RAW, item);
-  } else {
-    throw new Exception("Not supported");
+  FREE_IMAGE_FORMAT[string] image_formats = [
+					     ".jpg": FIF_JPEG,
+					     ".jpeg": FIF_JPEG,
+					     ".cr2": FIF_RAW,
+					     ];
+
+  try {
+    return get_image_time(image_formats[image_type], item);
+  } catch (RangeError err) {
+    throw new Exception("Not supported image format");
   }
 }
 
