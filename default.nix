@@ -6,9 +6,9 @@ stdenv.mkDerivation {
   src = "./.";
 
   buildInputs = [
+    # TODO: Provide D tools
     # dub
     # dmd
-    libexif
     freeimage
   ];
 

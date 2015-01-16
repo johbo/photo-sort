@@ -11,8 +11,6 @@ import std.stdio;
 import std.string;
 
 import deimos.freeimage;
-import deimos.libexif.exif_data;
-import deimos.libexif.exif_loader;
 
 
 class ImageFileSorter {
@@ -93,36 +91,30 @@ private SysTime get_jpeg_time(DirEntry item) {
       Value: 2014:12:29 12:25:23
   */
 
-  
-  // TODO: I think it should be possible to wrap this in a D struct or
-  // something similar.
-  ExifLoader* loader = exif_loader_new();
+  auto image = FreeImage_Load(FIF_JPEG,
+			      item.name.toStringz(),
+			      FIF_LOAD_NOPIXELS);
   scope(exit) {
-    exif_loader_unref(loader);
+    FreeImage_Unload(image);
   }
-  exif_loader_write_file(loader, toStringz(item.name));
 
-  ExifData* data = exif_loader_get_data(loader);
-  // TODO: should probably free `data`, and could use
-  // exif_data_new_from_file to avoid creating the loader on my own.
-
-  // Note: Can be used to dump all EXIF data for inspection
-  // exif_data_dump(data);
-
-  
-  ExifEntry* entry = exif_content_get_entry(data.ifd[EXIF_IFD_0],
-					    EXIF_TAG_DATE_TIME);
-
-  if (entry) {
-    // TODO: logging
-    writeln("Found EXIF date");
-
-    // TODO: only use the entry if it is of type ASCII
-    writeln(to!string(exif_format_get_name(entry.format)));
-
-    auto ascii_date = to!string(cast(ExifAscii) entry.data);
-    return parse_ascii_date(ascii_date);
-
+  FITAG* tag;
+  if (FreeImage_GetMetadata(FIMD_EXIF_MAIN,
+			    image,
+			    "DateTime".toStringz(),
+			    &tag)) {
+    auto tag_str = to!string(FreeImage_TagToString(FIF_RAW, tag));
+    return parse_ascii_date(tag_str);
+  } else {
+    auto iter = FreeImage_FindFirstMetadata(FIMD_EXIF_MAIN,
+					    image,
+					    &tag);
+    if (iter) {
+      writefln("TAG %s", FreeImage_GetTagKey(tag).fromStringz());
+      while (FreeImage_FindNextMetadata(iter, &tag)) {
+	writefln("TAG %s", FreeImage_GetTagKey(tag).fromStringz());
+      }
+    }
   }
 
   // logging
@@ -152,8 +144,8 @@ private SysTime get_cr2_time(DirEntry item) {
     auto iter = FreeImage_FindFirstMetadata(FIMD_EXIF_MAIN,
 					    image,
 					    &tag);
-    writefln("TAG: %s", FreeImage_GetTagKey(tag).fromStringz());
     if (iter) {
+      writefln("TAG: %s", FreeImage_GetTagKey(tag).fromStringz());
       while (FreeImage_FindNextMetadata(iter, &tag)) {
 	writefln("TAG: %s", FreeImage_GetTagKey(tag).fromStringz());
       }
