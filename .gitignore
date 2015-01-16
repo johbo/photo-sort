@@ -1,0 +1,13 @@
+
+# generated artifacts
+*~
+*.o
+
+# generated binary
+sort
+
+# Ignore image files
+*.CR2
+*.JPG
+*.cr2
+*.jpg
