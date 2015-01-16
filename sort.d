@@ -19,7 +19,11 @@ int main(string[] args) {
     }
 
     AppConfig config = AppConfig();
-    config.check_and_parse(args);
+    try {
+        config.check_and_parse(args);
+    } catch (Exception e) {
+        return 1;
+    }
 
     // TODO: How is logging done in D?
     stdout.writefln("Working in directory %s", config.source_dir);
