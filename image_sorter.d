@@ -53,15 +53,15 @@ class ImageFileSorter {
                     rename(filename, target_filename);
                 }
             } else {
-                writefln("    SKIPPING, file %s already exists!", target_filename);
+                writefln(
+                    "    SKIPPING, file %s already exists!",
+                    target_filename);
             }
         }
 
     }
 
 }
-
-
 
 
 bool should_process(DirEntry item) {
