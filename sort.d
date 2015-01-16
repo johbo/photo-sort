@@ -6,10 +6,17 @@ import std.file;
 import std.path;
 import std.stdio;
 
+import deimos.freeimage;
+
 import image_sorter;
 
 
 int main(string[] args) {
+
+  FreeImage_Initialise();
+  scope(exit) {
+    FreeImage_DeInitialise();
+  }
 
   AppConfig config = AppConfig();
   config.check_and_parse(args);
