@@ -9,6 +9,7 @@ stdenv.mkDerivation {
     # dub
     # dmd
     libexif
+    freeimage
   ];
 
   propagatedBuildInputs = [];
