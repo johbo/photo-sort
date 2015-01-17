@@ -11,11 +11,11 @@
 
 - [X] use freeimage also for jpeg case
 
-- [ ] Building things with dub
+- [X] Building things with dub
+
+- [X] Logging
 
 - [ ] Document classes and functions
-
-- [ ] Logging
 
 - [ ] Testing
 

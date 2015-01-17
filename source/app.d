@@ -7,6 +7,7 @@ import std.path;
 import std.stdio;
 
 import deimos.freeimage;
+import std.experimental.logger;
 
 import config;
 import image_sorter;
@@ -14,8 +15,13 @@ import image_sorter;
 
 int main(string[] args) {
 
+    // TODO: Support an option to set the logging level
+    globalLogLevel = LogLevel.info;
+
+    log("Initialising freeimage library");
     FreeImage_Initialise();
     scope(exit) {
+        log("Freeing up freeimage library");
         FreeImage_DeInitialise();
     }
 
@@ -26,15 +32,11 @@ int main(string[] args) {
         return 1;
     }
 
-    // TODO: How is logging done in D?
-    stdout.writefln("Working in directory %s", config.source_dir);
-
+    logf("Working in directory %s", config.source_dir);
     ImageFileSorter sorter = new ImageFileSorter(
         config.source_dir,
         config.target_dir);
     sorter.process_files(config.dry_run);
 
-    // Done, return success
     return 0;
-
 }
