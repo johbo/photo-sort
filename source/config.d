@@ -5,6 +5,7 @@ import std.algorithm;
 import std.stdio;
 
 import docopt;
+import std.experimental.logger;
 
 
 auto usageText = "Usage: photo-sort [options] <work_dir>
@@ -14,6 +15,7 @@ application to learn the D programming language.
 
 Options:
     -h, --help   Show this usage information.
+    --verbose    Activate debug logging.
     --dry-run    Dry run to find out what would happen.
 
 ";
@@ -31,10 +33,15 @@ struct AppConfig {
         auto arguments = docopt.docopt(
             usageText, args[1..$], true, "Photo sorter");
 
+        if (arguments["--verbose"].isTrue()) {
+            globalLogLevel = LogLevel.all;
+        }
+
         source_dir = arguments["<work_dir>"].toString();
         target_dir = source_dir;
 
         dry_run = arguments["--dry-run"].isTrue();
+
     }
 
 }
