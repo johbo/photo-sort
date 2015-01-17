@@ -1,0 +1,7 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"logger": "0.3.3",
+		"freeimage": "~master"
+	}
+}
