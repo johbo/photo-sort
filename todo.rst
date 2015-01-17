@@ -15,6 +15,8 @@
 
 - [X] Logging
 
+- [X] Parser for command line args
+
 - [ ] Document classes and functions
 
 - [ ] Testing
@@ -22,8 +24,6 @@
   - [ ] Organizing tests
 
   - [ ] Coverage
-
-- [ ] Parser for command line args
 
 - [ ] dynamic linking / static linking ?
 
