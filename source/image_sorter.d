@@ -11,6 +11,7 @@ import std.stdio;
 import std.string;
 
 import deimos.freeimage;
+import std.experimental.logger;
 
 
 class ImageFileSorter {
@@ -25,20 +26,17 @@ class ImageFileSorter {
 
     void process_files(bool dry_run=false) {
 
-        writefln("Source dir: %s", _source_dir);
+        logf("Processing files in %s", _source_dir);
     
         // Images in current directory
         auto files = dirEntries(_source_dir, SpanMode.shallow);
         auto filtered_files = filter!should_process(files);
 
         foreach(filename; filtered_files) {
-            writefln("Working on file %s", filename);
+            logf("Working on file %s", filename);
 
             auto created = get_time(filename);
-            writefln("    created at: %s", created);
-
             auto path = get_target_path(created);
-            writefln("    target path: %s", path);
 
             auto target_path = buildPath(_target_dir, path);
             if (! dry_run) {
@@ -48,13 +46,13 @@ class ImageFileSorter {
             auto target_filename = buildPath(target_path,
                                              get_target_filename(filename));
             if (! target_filename.exists()) {
-                writefln("    moving file to %s", target_filename);
+                infof("moving file %s to %s", filename, target_filename);
                 if (! dry_run) {
                     rename(filename, target_filename);
                 }
             } else {
-                writefln(
-                    "    SKIPPING, file %s already exists!",
+                infof(
+                    "Skipping %s, this file already exists.",
                     target_filename);
             }
         }
@@ -103,20 +101,19 @@ private SysTime get_image_time(FREE_IMAGE_FORMAT image_format, DirEntry item) {
         auto tag_str = to!string(FreeImage_TagToString(image_format, tag));
         return parse_ascii_date(tag_str);
     } else {
-        // TODO: Dump tags should be kind of verbose mode only
+        logf("Did not find the date in %s", item);
         auto iter = FreeImage_FindFirstMetadata(FIMD_EXIF_MAIN,
                                                 image,
                                                 &tag);
         if (iter) {
-            writefln("TAG %s", FreeImage_GetTagKey(tag).fromStringz());
+            logf("TAG %s", FreeImage_GetTagKey(tag).fromStringz());
             while (FreeImage_FindNextMetadata(iter, &tag)) {
-                writefln("TAG %s", FreeImage_GetTagKey(tag).fromStringz());
+                logf("TAG %s", FreeImage_GetTagKey(tag).fromStringz());
             }
         }
     }
 
-    // logging
-    writeln("INFO: Did not find an EXIF date, using file date.");
+    logf("Did not find an EXIF date, using file date.");
     return item.timeLastModified();
 }
 
@@ -130,9 +127,9 @@ private SysTime parse_ascii_date(string ascii_date) {
         return SysTime(DateTime(parts[0], parts[1], parts[2],
                                 parts[3], parts[4], parts[5]));
     } else {
-        // TODO: logging
-        writeln("ERROR: Parsed date into %s parts. Original value %s.",
-                parts.length, ascii_date);
+        warningf(
+            "Parsed date into %s parts. Original value %s.",
+            parts.length, ascii_date);
         throw new Exception("Cannot parse date");
     }
 }
@@ -148,8 +145,7 @@ string get_target_path(SysTime time) {
 
 void ensure_path_exists(string path) {
     if (! path.exists()) {
-        // TODO: logging
-        writefln("Creating path %s", path);
+        infof("Creating path %s", path);
         mkdirRecurse(path);
     }
 }
