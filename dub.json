@@ -4,6 +4,7 @@
     "copyright": "Copyright © 2015, Johannes Bornhold",
     "authors": ["Johannes Bornhold"],
     "dependencies": {
+        "docopt": ">=0.6.1-b.1",
         "freeimage": "~master",
         "logger": ">=0.3.3",
     }
