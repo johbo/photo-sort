@@ -2,13 +2,18 @@
 # generated artifacts
 *~
 *.o
+*.obj
 .*
+.dub
+docs.json
+__dummy.html
 
 # generated binary
-sort
+photo-sort
 
 # Ignore image files
 *.CR2
 *.JPG
 *.cr2
 *.jpg
+

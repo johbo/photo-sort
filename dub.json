@@ -1,0 +1,10 @@
+{
+    "name": "photo-sort",
+    "description": "Sorting photos based on time information.",
+    "copyright": "Copyright © 2015, Johannes Bornhold",
+    "authors": ["Johannes Bornhold"],
+    "dependencies": {
+        "freeimage": "~master",
+        "logger": ">=0.3.3",
+    }
+}
