@@ -6,9 +6,9 @@ stdenv.mkDerivation {
   src = "./.";
 
   buildInputs = [
-    # TODO: Provide D tools
+    dmd
+    # TODO: Not yet available in nixpkgs
     # dub
-    # dmd
     freeimage
   ];
 
