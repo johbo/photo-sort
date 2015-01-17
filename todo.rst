@@ -11,15 +11,21 @@
 
 - [X] use freeimage also for jpeg case
 
+- [ ] Building things with dub
+
 - [ ] Document classes and functions
 
 - [ ] Logging
 
 - [ ] Testing
 
+  - [ ] Organizing tests
+
+  - [ ] Coverage
+
 - [ ] Parser for command line args
 
-- [ ] Building things
+- [ ] dynamic linking / static linking ?
 
 - [ ] App structure
 
