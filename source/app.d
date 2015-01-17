@@ -15,6 +15,9 @@ import image_sorter;
 
 int main(string[] args) {
 
+    // TODO: Support an option to set the logging level
+    globalLogLevel = LogLevel.info;
+
     log("Initialising freeimage library");
     FreeImage_Initialise();
     scope(exit) {
@@ -30,7 +33,6 @@ int main(string[] args) {
     }
 
     logf("Working in directory %s", config.source_dir);
-
     ImageFileSorter sorter = new ImageFileSorter(
         config.source_dir,
         config.target_dir);
