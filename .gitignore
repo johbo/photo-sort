@@ -2,7 +2,11 @@
 # generated artifacts
 *~
 *.o
+*.obj
 .*
+.dub
+docs.json
+__dummy.html
 
 # generated binary
 sort
@@ -12,3 +16,4 @@ sort
 *.JPG
 *.cr2
 *.jpg
+
