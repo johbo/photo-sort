@@ -4,6 +4,20 @@ module config;
 import std.algorithm;
 import std.stdio;
 
+import docopt;
+
+
+auto usageText = "Usage: photo-sort [options] <work_dir>
+
+Photo sort is an experiment primarily intended as an example
+application to learn the D programming language.
+
+Options:
+    -h, --help   Show this usage information.
+    --dry-run    Dry run to find out what would happen.
+
+";
+
 
 struct AppConfig {
 
@@ -14,37 +28,13 @@ struct AppConfig {
 
     void check_and_parse(string[] args) {
 
-        // TODO: Want to say 'args.pop("--dry-run")' or similar
-        auto idx = args.countUntil("--dry-run");
-        if (idx != -1) {
-            dry_run = true;
-            args = args.remove(idx);
-        }
+        auto arguments = docopt.docopt(
+            usageText, args[1..$], true, "Photo sorter");
 
-        // TODO: Probably there is a utility in D to parse command line
-        // arguments
-        if (args.length != 2) {
-            stderr.writefln("Usage: %s DIRNAME [--dry-run]", args[0]);
-            throw new Exception("Directory name missing");
-        }
-
-        source_dir = args[1];
+        source_dir = arguments["<work_dir>"].toString();
         target_dir = source_dir;
-    }
 
-
-    unittest {
-        import std.exception;
-        
-        auto config = AppConfig();
-
-        // TODO: test names? test runner?
-        assertThrown(config.check_and_parse(["a"]));
-        assertThrown(config.check_and_parse(["a", "--dry-run"]));
-        assertThrown(config.check_and_parse(["a", "b", "c"]));
-
-        assertNotThrown(config.check_and_parse(["a", "dir"]));
-        assertNotThrown(config.check_and_parse(["a", "dir", "--dry-run"]));
+        dry_run = arguments["--dry-run"].isTrue();
     }
 
 }
