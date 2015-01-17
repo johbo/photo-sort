@@ -7,16 +7,31 @@ import std.path;
 import std.stdio;
 
 import deimos.freeimage;
+import docopt;
 import std.experimental.logger;
 
 import config;
 import image_sorter;
 
 
+auto helpText = "Usage: photo-sort [options] <work_dir>
+
+Photo sort is an experiment primarily intended as an example
+application to learn the D programming language.
+
+Options:
+    -h, --help   Show this usage information.
+    --dry-run    Dry run to find out what would happen.
+
+";
+
 int main(string[] args) {
 
     // TODO: Support an option to set the logging level
     globalLogLevel = LogLevel.info;
+
+    auto arguments = docopt.docopt(helpText, args[1..$], true, "Photo sorter");
+    writeln(arguments);
 
     log("Initialising freeimage library");
     FreeImage_Initialise();
@@ -25,18 +40,12 @@ int main(string[] args) {
         FreeImage_DeInitialise();
     }
 
-    AppConfig config = AppConfig();
-    try {
-        config.check_and_parse(args);
-    } catch (Exception e) {
-        return 1;
-    }
-
-    logf("Working in directory %s", config.source_dir);
-    ImageFileSorter sorter = new ImageFileSorter(
-        config.source_dir,
-        config.target_dir);
-    sorter.process_files(config.dry_run);
+    auto source_dir = arguments["<work_dir>"].toString();
+    auto target_dir = source_dir;
+    
+    logf("Working in directory %s", source_dir);
+    ImageFileSorter sorter = new ImageFileSorter(source_dir, target_dir);
+    sorter.process_files(arguments["--dry-run"].isTrue());
 
     return 0;
 }
