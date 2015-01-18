@@ -36,3 +36,5 @@
 - [ ] Allow file name patterns
 
 - [ ] configuration file available
+
+- [ ] Make nix-build work
