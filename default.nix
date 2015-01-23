@@ -3,21 +3,26 @@ with import <nixpkgs> {};
 stdenv.mkDerivation {
   name = "photo-sort";
 
-  src = "./.";
+  src = ./.;
 
   buildInputs = [
     dmd
-    # TODO: Not yet available in nixpkgs
-    # dub
+    dub
     freeimage
   ];
 
   propagatedBuildInputs = [];
 
   buildPhase = ''
+    # TODO: Find a solution to avoid the HOME tweak here
+    # Tried --cache=local, but this did explode
+    echo `pwd`
+    HOME=`pwd` dub build
   '';
 
   installPhase = ''
+    mkdir -p $out/bin
+    cp photo-sort $out/bin
   '';
 
 }
