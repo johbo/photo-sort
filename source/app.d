@@ -6,12 +6,10 @@ import std.file;
 import std.path;
 import std.stdio;
 
-import deimos.freeimage;
 import std.experimental.logger;
 
 import application;
 import config;
-import image_sorter;
 
 
 int main(string[] args) {
@@ -21,17 +19,12 @@ int main(string[] args) {
     auto config = AppConfig();
     config.check_and_parse(args);
 
-    auto app = new Application();
+    auto app = new Application(config);
     app.initialise();
     scope(exit) {
         app.deInitialise();
     }
-
-    logf("Working in directory %s", config.source_dir);
-    ImageFileSorter sorter = new ImageFileSorter(
-        config.source_dir,
-        config.target_dir);
-    sorter.process_files(config.dry_run);
+    app.run();
 
     return 0;
 }
