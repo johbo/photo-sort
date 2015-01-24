@@ -36,8 +36,7 @@ class ImageFileSorter {
         foreach(image; images) {
             logf("Working on %s", image);
 
-            // TODO; replace with a property of the image
-            auto filename = image._path;
+            auto filename = image.filename.toLower();
             auto path = get_target_path(image.timeCreated);
 
             auto target_path = buildPath(_target_dir, path);

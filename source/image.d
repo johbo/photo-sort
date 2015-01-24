@@ -16,7 +16,7 @@ import image_sorter;
 
 class Image {
 
-    string _path;
+    private string _path;
 
     this(string path) {
         _path = path;
@@ -26,6 +26,13 @@ class Image {
     string toString() {
         return "Image(\"%s\")".format(_path);
     }
+
+
+    @property
+    string filename() {
+        return baseName(_path);
+    }
+
 
     @property
     SysTime timeCreated() {
@@ -55,6 +62,11 @@ unittest {
     // test: allows to read creation time
     // TODO: Assert the time value, but this needs a test image first ;-)
     writeln(img.timeCreated);
+
+
+    // test: filename attribute contains base filename
+    img = new Image("example/Path/FileNAME.JpG");
+    assert(img.filename == "FileNAME.JpG");
 }
 
 
