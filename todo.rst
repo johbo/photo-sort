@@ -17,6 +17,8 @@
 
 - [X] Parser for command line args
 
+- [X] Make nix-build work
+
 - [ ] Document classes and functions
 
 - [ ] Testing
@@ -36,5 +38,3 @@
 - [ ] Allow file name patterns
 
 - [ ] configuration file available
-
-- [ ] Make nix-build work
