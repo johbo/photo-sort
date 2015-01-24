@@ -19,6 +19,16 @@
 
 - [X] Make nix-build work
 
+- [X] Generate images as a range
+
+  - [X] Image source which is a range
+
+  - [X] Image interface which provides certain details about an image
+
+  - [X] Storage strategy, tells where to store a given image
+
+  - [X] Store can store an image given a sequence of path fragments
+
 - [ ] Document classes and functions
 
 - [ ] Testing
