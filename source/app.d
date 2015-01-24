@@ -9,23 +9,22 @@ import std.stdio;
 import deimos.freeimage;
 import std.experimental.logger;
 
+import application;
 import config;
 import image_sorter;
 
 
 int main(string[] args) {
 
-    // TODO: Support an option to set the logging level
     globalLogLevel = LogLevel.info;
 
     auto config = AppConfig();
     config.check_and_parse(args);
 
-    log("Initialising freeimage library");
-    FreeImage_Initialise();
+    auto app = new Application();
+    app.initialise();
     scope(exit) {
-        log("Freeing up freeimage library");
-        FreeImage_DeInitialise();
+        app.deInitialise();
     }
 
     logf("Working in directory %s", config.source_dir);
