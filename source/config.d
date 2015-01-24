@@ -21,21 +21,20 @@ Options:
 ";
 
 
-struct AppConfig {
+class AppConfig {
 
     string source_dir;
     string target_dir;
 
     bool dry_run = false;
+    bool verbose = false;
 
     void check_and_parse(string[] args) {
 
         auto arguments = docopt.docopt(
             usageText, args[1..$], true, "Photo sorter");
 
-        if (arguments["--verbose"].isTrue()) {
-            globalLogLevel = LogLevel.all;
-        }
+        verbose = arguments["--verbose"].isTrue();
 
         source_dir = arguments["<work_dir>"].toString();
         target_dir = source_dir;
@@ -55,16 +54,10 @@ unittest {
 
     // test: adjusts log level based on parameters
 
-    // TODO: avoiding to leave the globalLogLevel changed, better ways
-    // to achieve that?
-
-    auto oldLogLevel = globalLogLevel;
-    scope(exit) { globalLogLevel = oldLogLevel; }
-
     auto config = new AppConfig();
     auto args = ["program-name", "fake-directory"];
     config.check_and_parse(args ~ ["--verbose"]);
-    assert(globalLogLevel == LogLevel.all);
+    assert(config.verbose);
 
 
     // test: provides working directory as source and target

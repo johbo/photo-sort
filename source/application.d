@@ -18,10 +18,12 @@ class Application {
             config.source_dir, config.target_dir);
     }
 
-    private this() {
-    }
-
     void initialise() {
+        if (config.verbose) {
+            globalLogLevel = LogLevel.all;
+        } else {
+            globalLogLevel = LogLevel.info;
+        }
         log("Initialising freeimage library");
         FreeImage_Initialise();
     }
@@ -41,22 +43,42 @@ class Application {
 
 unittest {
 
-    // test: initializes the freeimage library
-    auto app = new Application();
+    // TODO: avoiding to leave the globalLogLevel changed, better ways
+    // to achieve that?
+    auto oldLogLevel = globalLogLevel;
+    scope(exit) { globalLogLevel = oldLogLevel; }
+
+    auto config = new AppConfig();
+    config.check_and_parse(["program-name", "work", "--dry-run"]);
+    auto app = new Application(config);
+
+
+    // test: initialises the freeimage library
     app.initialise();
     assert(FreeImage_Initialise.hasBeenCalled);
     app.deInitialise();
     assert(FreeImage_DeInitialise.hasBeenCalled);
 
+
+    // test: sets the log level depending on configuration
+    config.verbose = true;
+    globalLogLevel = LogLevel.info;
+    app.initialise();
+    assert(globalLogLevel == LogLevel.all);
+
+    config.verbose = false;
+    app.initialise();
+    assert(globalLogLevel == LogLevel.info);
+
+
     // test: provides run method
-    auto config = AppConfig();
     // TODO: have an image in a directory ready
-    config.check_and_parse(["program-name", "work", "--dry-run"]);
     app = new Application(config);
     // TODO: How to avoid that the sorter actually does something?
     // TODO: Check that it does the initialisation and deinitialisation
     app.run();
 }
+
 
 version (unittest) {
 

@@ -16,7 +16,7 @@ int main(string[] args) {
 
     globalLogLevel = LogLevel.info;
 
-    auto config = AppConfig();
+    auto config = new AppConfig();
     config.check_and_parse(args);
 
     auto app = new Application(config);
