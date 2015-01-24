@@ -27,61 +27,15 @@ class ImageFileSorter {
     }
 
     void process_files(bool dry_run=false) {
-
         logf("Processing files in %s", _source_dir);
-
-        // Images in current directory
         auto images = imageSource(_source_dir);
-        auto storeStrategy = TimeBasedStorageStrategy(_target_dir);
-
+        auto store = ImageStore!TimeBasedStorage(_target_dir, dry_run);
         foreach(image; images) {
             logf("Working on %s", image);
-
-            auto storePath = storeStrategy.targetPath(image);
-
-            auto filename = image.filename.toLower();
-
-            auto target_path = buildPath(storePath[0..$-1]);
-            if (! dry_run) {
-                ensure_path_exists(target_path);
-            }
-
-            auto target_filename = buildPath(storePath);
-            if (! target_filename.exists()) {
-                infof("moving file %s to %s", filename, target_filename);
-                if (! dry_run) {
-                    rename(filename, target_filename);
-                }
-            } else {
-                infof(
-                    "Skipping %s, this file already exists.",
-                    target_filename);
-            }
+            store.add(image);
         }
-
     }
 
-}
-
-
-string get_target_path(SysTime time) {
-    return buildPath(
-        time.year.to!string,
-        format("%02d", time.month),
-        format("%02d", time.day));
-}
-
-
-void ensure_path_exists(string path) {
-    if (! path.exists()) {
-        infof("Creating path %s", path);
-        mkdirRecurse(path);
-    }
-}
-
-
-string get_target_filename(string filename) {
-    return baseName(filename.toLower());
 }
 
 
@@ -145,7 +99,7 @@ bool should_process(DirEntry item) {
 }
 
 
-struct TimeBasedStorageStrategy {
+struct TimeBasedStorage {
 
     private string _targetDirectory;
 
@@ -161,14 +115,14 @@ struct TimeBasedStorageStrategy {
             created.year.to!string,
             format("%02d", created.month),
             format("%02d", created.day),
-            img.filename];
+            img.baseFilename];
     }
 
 }
 
 
 unittest {
-    auto storeStrategy = TimeBasedStorageStrategy("target");
+    auto storeStrategy = TimeBasedStorage("target");
     auto img = new Image("work/test-image.jpg");
 
 
@@ -179,4 +133,50 @@ unittest {
     // TODO: check that the middle contains correct time based fragments
     assert(result.length == 5);
     assert(result[$-1] == "test-image.jpg");
+}
+
+
+struct ImageStore(StorageStrategy) {
+
+    string targetPath;
+
+    private StorageStrategy storeStrategy;
+    private bool dry_run = false;
+
+    this(string targetPath, bool dry_run=false) {
+        this.targetPath = targetPath;
+        this.storeStrategy = StorageStrategy(targetPath);
+        this.dry_run = dry_run;
+    }
+
+    void add(Image image) {
+        auto storePath = storeStrategy.targetPath(image);
+
+        auto target_path = buildPath(storePath[0..$-1]);
+        if (! dry_run) {
+            ensure_path_exists(target_path);
+        }
+
+        auto target_filename = buildPath(storePath);
+        if (! target_filename.exists()) {
+            infof("moving file %s to %s",
+                  image.baseFilename, target_filename);
+            if (! dry_run) {
+                rename(image.filename, target_filename);
+            }
+        } else {
+            infof(
+                "Skipping %s, this file already exists.",
+                target_filename);
+        }
+    }
+
+}
+
+
+void ensure_path_exists(string path) {
+    if (! path.exists()) {
+        infof("Creating path %s", path);
+        mkdirRecurse(path);
+    }
 }

@@ -30,6 +30,11 @@ class Image {
 
     @property
     string filename() {
+        return _path;
+    }
+
+    @property
+    string baseFilename() {
         return baseName(_path);
     }
 
@@ -66,7 +71,8 @@ unittest {
 
     // test: filename attribute contains base filename
     img = new Image("example/Path/FileNAME.JpG");
-    assert(img.filename == "FileNAME.JpG");
+    assert(img.filename == "example/Path/FileNAME.JpG");
+    assert(img.baseFilename == "FileNAME.JpG");
 }
 
 
