@@ -7,6 +7,7 @@
 .dub
 docs.json
 __dummy.html
+__test__library__
 
 # generated binary
 photo-sort
