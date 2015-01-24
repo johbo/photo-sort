@@ -32,20 +32,21 @@ class ImageFileSorter {
 
         // Images in current directory
         auto images = imageSource(_source_dir);
+        auto storeStrategy = TimeBasedStorageStrategy(_target_dir);
 
         foreach(image; images) {
             logf("Working on %s", image);
 
-            auto filename = image.filename.toLower();
-            auto path = get_target_path(image.timeCreated);
+            auto storePath = storeStrategy.targetPath(image);
 
-            auto target_path = buildPath(_target_dir, path);
+            auto filename = image.filename.toLower();
+
+            auto target_path = buildPath(storePath[0..$-1]);
             if (! dry_run) {
                 ensure_path_exists(target_path);
             }
 
-            auto target_filename = buildPath(target_path,
-                                             get_target_filename(filename));
+            auto target_filename = buildPath(storePath);
             if (! target_filename.exists()) {
                 infof("moving file %s to %s", filename, target_filename);
                 if (! dry_run) {
@@ -141,4 +142,41 @@ unittest {
 bool should_process(DirEntry item) {
     auto supported = [".jpg", ".jpeg", ".cr2"];
     return supported.canFind(item.name.toLower().extension());
+}
+
+
+struct TimeBasedStorageStrategy {
+
+    private string _targetDirectory;
+
+    this (string targetDirectory) {
+        _targetDirectory = targetDirectory;
+    }
+
+    string[] targetPath(Image img) {
+        auto created = img.timeCreated;
+
+        return [
+            _targetDirectory,
+            created.year.to!string,
+            format("%02d", created.month),
+            format("%02d", created.day),
+            img.filename];
+    }
+
+}
+
+
+unittest {
+    auto storeStrategy = TimeBasedStorageStrategy("target");
+    auto img = new Image("work/test-image.jpg");
+
+
+    // test: Creates target path based on image time
+    string[] result = storeStrategy.targetPath(img);
+    writeln(result);
+    assert(result[0] == "target");
+    // TODO: check that the middle contains correct time based fragments
+    assert(result.length == 5);
+    assert(result[$-1] == "test-image.jpg");
 }
