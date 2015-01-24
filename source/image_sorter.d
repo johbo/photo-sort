@@ -4,16 +4,15 @@ module image_sorter;
 import std.algorithm;
 import std.array;
 import std.conv;
-import std.datetime;
 import std.file;
 import std.path;
 import std.stdio;
 import std.string;
 
-import deimos.freeimage;
 import std.experimental.logger;
 
 import image;
+import store;
 
 
 class ImageFileSorter {
@@ -133,50 +132,4 @@ unittest {
     // TODO: check that the middle contains correct time based fragments
     assert(result.length == 5);
     assert(result[$-1] == "test-image.jpg");
-}
-
-
-struct ImageStore(StorageStrategy) {
-
-    string targetPath;
-
-    private StorageStrategy storeStrategy;
-    private bool dry_run = false;
-
-    this(string targetPath, bool dry_run=false) {
-        this.targetPath = targetPath;
-        this.storeStrategy = StorageStrategy(targetPath);
-        this.dry_run = dry_run;
-    }
-
-    void add(Image image) {
-        auto storePath = storeStrategy.targetPath(image);
-
-        auto target_path = buildPath(storePath[0..$-1]);
-        if (! dry_run) {
-            ensure_path_exists(target_path);
-        }
-
-        auto target_filename = buildPath(storePath);
-        if (! target_filename.exists()) {
-            infof("moving file %s to %s",
-                  image.baseFilename, target_filename);
-            if (! dry_run) {
-                rename(image.filename, target_filename);
-            }
-        } else {
-            infof(
-                "Skipping %s, this file already exists.",
-                target_filename);
-        }
-    }
-
-}
-
-
-void ensure_path_exists(string path) {
-    if (! path.exists()) {
-        infof("Creating path %s", path);
-        mkdirRecurse(path);
-    }
 }
