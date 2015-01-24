@@ -24,7 +24,7 @@ class Image {
 
     override
     string toString() {
-        return "Image(%s)".format(_path);
+        return "Image(\"%s\")".format(_path);
     }
 
     @property
@@ -49,7 +49,7 @@ unittest {
 
 
     // test: to string includes the path of the image
-    assert(to!string(img) == "Image(%s)".format(testImagePath));
+    assert(to!string(img) == "Image(\"%s\")".format(testImagePath));
 
 
     // test: allows to read creation time

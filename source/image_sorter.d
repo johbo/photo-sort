@@ -31,14 +31,14 @@ class ImageFileSorter {
         logf("Processing files in %s", _source_dir);
 
         // Images in current directory
-        auto files = dirEntries(_source_dir, SpanMode.shallow);
-        auto filtered_files = filter!should_process(files);
+        auto images = imageSource(_source_dir);
 
-        foreach(filename; filtered_files) {
-            logf("Working on file %s", filename);
+        foreach(image; images) {
+            logf("Working on %s", image);
 
-            auto created = get_time(filename);
-            auto path = get_target_path(created);
+            // TODO; replace with a property of the image
+            auto filename = image._path;
+            auto path = get_target_path(image.timeCreated);
 
             auto target_path = buildPath(_target_dir, path);
             if (! dry_run) {
@@ -61,12 +61,6 @@ class ImageFileSorter {
 
     }
 
-}
-
-
-SysTime get_time(DirEntry item) {
-    auto image = new Image(item);
-    return image.timeCreated;
 }
 
 
