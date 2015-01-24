@@ -71,6 +71,12 @@ bool should_process(DirEntry item) {
 
 
 SysTime get_time(DirEntry item) {
+    auto image = new Image(item);
+    return image.timeCreated;
+}
+
+
+SysTime get_time_old(DirEntry item) {
     auto image_type = item.name.toLower().extension();
     FREE_IMAGE_FORMAT[string] image_formats = [
         ".jpg": FIF_JPEG,
@@ -206,7 +212,7 @@ unittest {
     bool foundImage = false;
     foreach (Image image; imagesToProcess) {
         foundImage = true;
-        writeln(image);
+        writefln("%s, %s", image, image.timeCreated);
     }
-    assert(foundImage);
+    assert(foundImage, "Needs a test image in \"work\"");
 }
