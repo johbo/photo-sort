@@ -29,6 +29,12 @@
 
   - [X] Store can store an image given a sequence of path fragments
 
+- [X] App structure
+
+  - [X] ImageFile representing an image
+
+    Should contain the image specific logic.
+
 - [ ] Document classes and functions
 
 - [ ] Testing
@@ -38,12 +44,6 @@
   - [ ] Coverage
 
 - [ ] dynamic linking / static linking ?
-
-- [ ] App structure
-
-  - [ ] ImageFile representing an image
-
-    Should contain the image specific logic.
 
 - [ ] Allow file name patterns
 
