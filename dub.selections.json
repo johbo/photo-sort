@@ -2,6 +2,7 @@
 	"fileVersion": 1,
 	"versions": {
 		"logger": "0.3.3",
+		"unit-threaded": "0.4.3",
 		"freeimage": "~master",
 		"docopt": "0.6.1-b.1"
 	}
