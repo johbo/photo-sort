@@ -16,7 +16,7 @@ class ImageStore(StorageStrategy) {
         bool dry_run = false;
 
         // Holds the chosen file handling method
-        void delegate(string source, string target) addFileIntoStore;
+        void function(string source, string target) addFileIntoStore;
     }
 
     this(string targetPath, bool dry_run=false, bool moveFiles=false) {
@@ -38,46 +38,86 @@ class ImageStore(StorageStrategy) {
         auto storePath = storeStrategy.targetPath(image);
 
         auto target_path = buildPath(storePath[0..$-1]);
-        if (! dry_run) {
-            ensure_path_exists(target_path);
-        }
-
         auto target_filename = buildPath(storePath);
         if (! target_filename.exists()) {
             addFileIntoStore(image.filename, target_filename);
         } else {
-            infof(
-                "Skipping %s, this file already exists.",
-                target_filename);
+            infof("Skipping %s, this file already exists.",
+                  target_filename);
         }
-    }
-
-    // TODO: these operations not really have to be inside of the class
-    private
-    void moveFileIntoStore(string sourceFilename, string targetFilename) {
-        infof("moving file %s to %s", sourceFilename, targetFilename);
-        rename(sourceFilename, targetFilename);
-    }
-
-    private
-    void copyFileIntoStore(string sourceFilename, string targetFilename) {
-        infof("copying file %s to %s", sourceFilename, targetFilename);
-        copy(sourceFilename, targetFilename);
-    }
-
-    private
-    void skipFile(string sourceFilename, string targetFilename) {
-        infof("dry_run, skipping copy or move of file %s to %s",
-              sourceFilename, targetFilename);
     }
 
 }
 
 
 private
-void ensure_path_exists(string path) {
+void moveFileIntoStore(string sourceFilename, string targetFilename) {
+    infof("moving file %s to %s", sourceFilename, targetFilename);
+    ensurePathExists(dirName(targetFilename));
+    rename(sourceFilename, targetFilename);
+}
+
+
+private
+void copyFileIntoStore(string sourceFilename, string targetFilename) {
+    infof("copying file %s to %s", sourceFilename, targetFilename);
+    ensurePathExists(dirName(targetFilename));
+    copy(sourceFilename, targetFilename);
+}
+
+
+private
+void skipFile(string sourceFilename, string targetFilename) {
+    infof("dry_run, skipping copy or move of file %s to %s",
+          sourceFilename, targetFilename);
+}
+
+
+private
+void ensurePathExists(string path) {
     if (! path.exists()) {
         infof("Creating path %s", path);
         mkdirRecurse(path);
     }
+}
+
+
+unittest {
+    // setup
+    auto testPath = "testing";
+    if (testPath.exists()) {
+        throw new Exception("Directory testing already exists!");
+    }
+    auto sourcePath = buildPath(testPath, "source");
+    auto targetPath = buildPath(testPath, "target");
+    auto sourceFile = buildPath(sourcePath, "file");
+    auto targetFile = buildPath(targetPath, "file");
+
+    mkdir(testPath);
+    scope(exit) {
+        rmdirRecurse(testPath);
+    }
+    mkdir(sourcePath);
+    mkdir(targetPath);
+
+
+    // test: skipFile does nothing
+    write(sourceFile, "content");
+    skipFile(sourceFile, targetFile);
+    assert(sourceFile.exists());
+    assert(!targetFile.exists());
+
+
+    // test: copyFile creates a copy of the file
+    copyFileIntoStore(sourceFile, targetFile);
+    assert(sourceFile.exists());
+    assert(targetFile.exists());
+    // TODO: automatic cleanup
+    targetFile.remove();
+
+
+    // test: moveFile moves the file into the store
+    moveFileIntoStore(sourceFile, targetFile);
+    assert(!sourceFile.exists());
+    assert(targetFile.exists());
 }
