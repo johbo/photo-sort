@@ -14,6 +14,8 @@ Photo sort is an experiment primarily intended as an example
 application to learn the D programming language.
 
 Options:
+    -m, --move   Move files into the right place instead of creating
+                 a copy.
     -h, --help   Show this usage information.
     --verbose    Activate debug logging.
     --dry-run    Dry run to find out what would happen.
@@ -27,6 +29,7 @@ class AppConfig {
     string target_dir;
 
     bool dry_run = false;
+    bool moveFiles = false;
     bool verbose = false;
 
     void check_and_parse(string[] args) {
@@ -35,11 +38,10 @@ class AppConfig {
             usageText, args[1..$], true, "Photo sorter");
 
         verbose = arguments["--verbose"].isTrue();
-
         source_dir = arguments["<work_dir>"].toString();
         target_dir = source_dir;
-
         dry_run = arguments["--dry-run"].isTrue();
+        moveFiles = arguments["--move"].isTrue();
     }
 }
 
@@ -53,7 +55,6 @@ unittest {
 
 
     // test: adjusts log level based on parameters
-
     auto config = new AppConfig();
     auto args = ["program-name", "fake-directory"];
     config.check_and_parse(args ~ ["--verbose"]);
@@ -68,8 +69,18 @@ unittest {
 
     // test: allows to set the dry_run flag
     config.check_and_parse(args);
-    assert(! config.dry_run);
+    assert(!config.dry_run);
 
     config.check_and_parse(args ~ ["--dry-run"]);
     assert(config.dry_run);
+
+
+    // test: allows to select to move files
+    config.check_and_parse(args);
+    assert(!config.moveFiles);
+
+    foreach(moveParam; ["-m", "--move"]) {
+        config.check_and_parse(args ~ [moveParam]);
+        assert(config.moveFiles);
+    }
 }

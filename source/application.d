@@ -15,7 +15,7 @@ class Application {
     this(AppConfig config) {
         this.config = config;
         this.sorter = new ImageFileSorter(
-            config.source_dir, config.target_dir);
+            config.source_dir, config.target_dir, config.moveFiles);
     }
 
     void initialise() {

@@ -17,18 +17,23 @@ import store;
 
 class ImageFileSorter {
 
-    private string _source_dir;
-    private string _target_dir;
+    private {
+        string _source_dir;
+        string _target_dir;
+        bool _moveFiles;
+    }
 
-    this(string source_dir, string target_dir) {
+    this(string source_dir, string target_dir, bool moveFiles=false) {
 	_source_dir = source_dir;
         _target_dir = target_dir;
+        _moveFiles = moveFiles;
     }
 
     void process_files(bool dry_run=false) {
         logf("Processing files in %s", _source_dir);
         auto images = imageSource(_source_dir);
-        auto store = ImageStore!TimeBasedStorage(_target_dir, dry_run);
+        auto store = new ImageStore!TimeBasedStorage(
+            _target_dir, dry_run, _moveFiles);
         foreach(image; images) {
             logf("Working on %s", image);
             store.add(image);
@@ -114,7 +119,7 @@ struct TimeBasedStorage {
             created.year.to!string,
             format("%02d", created.month),
             format("%02d", created.day),
-            img.baseFilename];
+            img.baseFilename.toLower()];
     }
 
 }
