@@ -10,6 +10,7 @@ import std.string;
 
 import deimos.freeimage;
 import std.experimental.logger;
+version(unittest) import unit_threaded;
 
 import image_sorter;
 
@@ -49,33 +50,6 @@ class Image {
 }
 
 
-unittest {
-    import std.conv;
-    import std.stdio;
-
-    // TODO: provide a test image automatically
-    auto testImagePath = "work/test-image.jpg";
-    assert(exists(testImagePath),
-           "Make sure to have a test image available to run the tests.");
-    auto img = new Image(testImagePath);
-
-
-    // test: to string includes the path of the image
-    assert(to!string(img) == "Image(\"%s\")".format(testImagePath));
-
-
-    // test: allows to read creation time
-    // TODO: Assert the time value, but this needs a test image first ;-)
-    writeln(img.timeCreated);
-
-
-    // test: filename attribute contains base filename
-    img = new Image("example/Path/FileNAME.JpG");
-    assert(img.filename == "example/Path/FileNAME.JpG");
-    assert(img.baseFilename == "FileNAME.JpG");
-}
-
-
 private
 SysTime get_time_old(DirEntry item) {
     auto image_type = item.name.toLower().extension();
@@ -109,7 +83,7 @@ SysTime get_image_time(FREE_IMAGE_FORMAT image_format, DirEntry item) {
                               "DateTime".toStringz(),
                               &tag)) {
         auto tag_str = to!string(FreeImage_TagToString(image_format, tag));
-        return parse_ascii_date(tag_str);
+        return parseAsciiDate(tag_str);
     } else {
         logf("Did not find the date in %s", item);
         auto iter = FreeImage_FindFirstMetadata(FIMD_EXIF_MAIN,
@@ -129,7 +103,7 @@ SysTime get_image_time(FREE_IMAGE_FORMAT image_format, DirEntry item) {
 
 
 private
-SysTime parse_ascii_date(string ascii_date) {
+SysTime parseAsciiDate(string ascii_date) {
     ascii_date = ascii_date.replace(" ", ":");
 
     auto parts = map!(to!int)(ascii_date.split(":"));
@@ -143,4 +117,30 @@ SysTime parse_ascii_date(string ascii_date) {
             parts.length, ascii_date);
         throw new Exception("Cannot parse date");
     }
+}
+
+
+version (unittest) {
+
+    void testParseAsciiDate() {
+        auto value = parseAsciiDate("2014:12:10 11:05:01");
+        checkEqual(
+            [2014, 12, 10, 11, 5, 1],
+            [value.year, value.month, value.day,
+             value.hour, value.minute, value.second]);
+    }
+
+
+    void testParseAsciiDate_WrongDate() {
+        checkThrown!Exception(parseAsciiDate("test"));
+        checkThrown!Exception(parseAsciiDate("2014:12:10"));
+        checkThrown!Exception(parseAsciiDate("2014:12:10 11:05"));
+    }
+
+
+    // TODO: This looks rather hacky, but it would allow to test this
+    // private function from a different module.
+
+    // auto _test_parseAsciiDate = &parseAsciiDate;
+
 }
