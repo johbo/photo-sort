@@ -7,16 +7,18 @@
         "docopt": ">=0.6.1-b.1",
         "freeimage": "~master",
         "logger": ">=0.3.3",
-        "unit-threaded": ">=0.4.3",
+        "unit-threaded": ">=0.4.3"
     },
     "configurations": [
         {
             "name": "default",
-            "targetType": "executable"
+            "targetType": "executable",
+            "targetName": "photo-sort"
         },
         {
             "name": "unittest",
             "targetType": "executable",
+            "targetName": "test-runner",
             "sourcePaths": ["tests"],
             "mainSourceFile": "tests/runner.d",
             "excludedSourceFiles": ["source/app.d"]

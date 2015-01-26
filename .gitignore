@@ -9,6 +9,7 @@ docs.json
 __dummy.html
 __test__library__
 result
+test-runner
 
 # generated binary
 photo-sort
