@@ -9,6 +9,7 @@ int main(string[] args) {
         "config",
         "image",
         "image_sorter",
+        "tests.config",
         "tests.example",
         "tests.image",
         )(args);
