@@ -6,8 +6,7 @@
     "dependencies": {
         "docopt": ">=0.6.1-b.1",
         "freeimage": "~master",
-        "logger": ">=0.3.3",
-        "unit-threaded": ">=0.4.3"
+        "logger": ">=0.3.3"
     },
     "configurations": [
         {
@@ -21,7 +20,10 @@
             "targetName": "test-runner",
             "sourcePaths": ["tests"],
             "mainSourceFile": "tests/runner.d",
-            "excludedSourceFiles": ["source/app.d"]
+            "excludedSourceFiles": ["source/app.d"],
+            "dependencies": {
+                "unit-threaded": ">=0.4.3"
+            }
         }
     ]
 }
