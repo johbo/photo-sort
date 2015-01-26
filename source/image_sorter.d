@@ -123,18 +123,3 @@ struct TimeBasedStorage {
     }
 
 }
-
-
-unittest {
-    auto storeStrategy = TimeBasedStorage("target");
-    auto img = new Image("work/test-image.jpg");
-
-
-    // test: Creates target path based on image time
-    string[] result = storeStrategy.targetPath(img);
-    writeln(result);
-    assert(result[0] == "target");
-    // TODO: check that the middle contains correct time based fragments
-    assert(result.length == 5);
-    assert(result[$-1] == "test-image.jpg");
-}

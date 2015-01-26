@@ -8,6 +8,7 @@ import std.string;
 import unit_threaded;
 
 import image;
+import tests.conftest;
 
 
 void testImageToString() {
@@ -33,16 +34,4 @@ void testImageFilename() {
     auto img = new Image("example/Path/FileNAME.JpG");
     checkEqual(img.filename, "example/Path/FileNAME.JpG");
     checkEqual(img.baseFilename, "FileNAME.JpG");
-}
-
-
-// Fixtures
-
-auto testImagePath = "work/test-image.jpg";
-
-Image getTestImage() {
-    // TODO: provide a test image automatically
-    assert(exists(testImagePath),
-           "Make sure to have a test image available to run the tests.");
-    return new Image(testImagePath);
 }

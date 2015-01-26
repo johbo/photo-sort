@@ -12,5 +12,6 @@ int main(string[] args) {
         "tests.config",
         "tests.example",
         "tests.image",
+        "tests.image_sorter",
         )(args);
 }
