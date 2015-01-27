@@ -35,13 +35,13 @@
 
     Should contain the image specific logic.
 
+- [X] Testing
+
+  - [X] Organizing tests
+
+  - [X] Coverage (works, but not so great output)
+
 - [ ] Document classes and functions
-
-- [ ] Testing
-
-  - [ ] Organizing tests
-
-  - [ ] Coverage
 
 - [ ] dynamic linking / static linking ?
 
