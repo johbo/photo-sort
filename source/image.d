@@ -47,20 +47,46 @@ class Image {
         return get_time_old(entry);
     }
 
+
+    void dumpMetadata() {
+        logf("Dumping metadata of %s", _path);
+        auto imageFormat = getImageFormat(_path);
+        FITAG* tag;
+        auto image = FreeImage_Load(
+            imageFormat,
+            _path.toStringz(),
+            FIF_LOAD_NOPIXELS);
+        scope(exit) {
+            FreeImage_Unload(image);
+        }
+        FIMETADATA* md = FreeImage_FindFirstMetadata(
+            FIMD_EXIF_MAIN, image, &tag);
+        do {
+            logf("%s: %s",
+                 FreeImage_GetTagKey(tag).to!string(),
+                 FreeImage_TagToString(FIMD_EXIF_MAIN, tag).to!string());
+        } while (FreeImage_FindNextMetadata(md, &tag));
+    }
+
 }
 
 
 private
 SysTime get_time_old(DirEntry item) {
-    auto image_type = item.name.toLower().extension();
+    return get_image_time(getImageFormat(item.name), item);
+}
+
+
+private
+FREE_IMAGE_FORMAT getImageFormat(string path) {
+    auto image_type = path.toLower().extension();
     FREE_IMAGE_FORMAT[string] image_formats = [
         ".jpg": FIF_JPEG,
         ".jpeg": FIF_JPEG,
         ".cr2": FIF_RAW,
         ];
-
     try {
-        return get_image_time(image_formats[image_type], item);
+        return image_formats[image_type];
     } catch (RangeError err) {
         throw new Exception("Not supported image format");
     }

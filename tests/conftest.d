@@ -11,9 +11,37 @@ import std.experimental.logger;
 import image;
 
 
-auto testImagePath = "work/test-image.jpg";
+// TODO: use a utility to get a random directory here and clean it
+// up afterwards
+auto testingPath = "testing";
+
+auto testImagePath = "testing/test-image.jpg";
+
 
 Image getTestImage() {
+    auto testingFile = buildPath("testing", "test-image.jpg");
+    auto sourceFile = buildPath("data", "test-image.jpg");
+
+    if (! testingPath.exists()) {
+        testingPath.mkdirRecurse();
+    }
+
+    sourceFile.copy(testingFile);
+
+    // TODO: provide a test image automatically
+    assert(exists(testingFile),
+           "Make sure to have a test image available to run the tests.");
+
+    return new Image(testingFile);
+}
+
+
+/**
+ * This can be used to create a small test image which will
+ * have a clone of the EXIF Metadata from `sourceFile`.
+ */
+private
+void createTestImage(string sourceFile="work/test-image.jpg") {
 
     // TODO: use a utility to get a random directory here and clean it
     // up afterwards
@@ -29,37 +57,14 @@ Image getTestImage() {
         FreeImage_Unload(testImage);
     }
 
-
-    // TODO: Add relevant EXIF information
-    FITAG* tag = FreeImage_CreateTag();
-    assert(tag != null, "Could not create tag");
-    scope(exit) {
-        FreeImage_DeleteTag(tag);
-    }
-
-    auto value = "2015:01:22 11:05:11";
-    uint length = to!uint(value.length + 1);
-    FreeImage_SetTagKey(tag, "DateTime".toStringz());
-    FreeImage_SetTagLength(tag, length);
-    FreeImage_SetTagCount(tag, length);
-    FreeImage_SetTagType(tag, FIDT_ASCII);
-    FreeImage_SetTagValue(tag, value.toStringz());
-
-    auto tag_success = FreeImage_SetMetadata(
-        FIMD_EXIF_MAIN,
-        testImage,
-        FreeImage_GetTagKey(tag),
-        tag);
-    if (!tag_success) {
-        throw new Exception("Writing the creation date failed");
-    }
-
-
+    auto tmpImg = FreeImage_Load(FIF_JPEG, sourceFile.toStringz());
+    FreeImage_CloneMetadata(testImage, tmpImg);
     FreeImage_Save(FIF_JPEG, testImage, testingFile.toStringz());
 
-    // TODO: provide a test image automatically
-    assert(exists(testImagePath),
-           "Make sure to have a test image available to run the tests.");
-    return new Image(testImagePath);
-}
+    // Dump metadata to compare
+    auto img = new Image(sourceFile);
+    img.dumpMetadata();
 
+    img = new Image(testingFile);
+    img.dumpMetadata();
+}
