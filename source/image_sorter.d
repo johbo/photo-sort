@@ -84,19 +84,6 @@ struct ImageSourceResult(Range) {
 }
 
 
-unittest {
-    // test: Can create an image source based on a directory
-    // TODO: Have a test directory provided somehow
-    auto imagesToProcess = imageSource("work");
-    bool foundImage = false;
-    foreach (Image image; imagesToProcess) {
-        foundImage = true;
-        writefln("%s, %s", image, image.timeCreated);
-    }
-    assert(foundImage, "Needs a test image in \"work\"");
-}
-
-
 bool should_process(DirEntry item) {
     auto supported = [".jpg", ".jpeg", ".cr2"];
     return supported.canFind(item.name.toLower().extension());
