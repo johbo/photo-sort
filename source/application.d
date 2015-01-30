@@ -43,13 +43,17 @@ class Application {
 
 unittest {
 
+    import tests.conftest;
+
+    getTestImage();
+
     // TODO: avoiding to leave the globalLogLevel changed, better ways
     // to achieve that?
     auto oldLogLevel = globalLogLevel;
     scope(exit) { globalLogLevel = oldLogLevel; }
 
     auto config = new AppConfig();
-    config.check_and_parse(["program-name", "work", "--dry-run"]);
+    config.check_and_parse(["program-name", "testing", "--dry-run"]);
     auto app = new Application(config);
 
 
